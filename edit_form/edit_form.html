@@ -39,8 +39,8 @@
             background-color: black;
             z-index: 9;
         }
-        .modal-btn{
-            margin-left: 20px;
+        .reset-btn, .cancel-btn{
+            margin-left: 15px;
         }
     </style>
 </head>
@@ -75,7 +75,7 @@
                     <td target="ip">1.1.1.1</td>
                     <td target="port">80</td>
                     <td target="status">
-                        <select title="状态">
+                        <select title="状态" class="info-selector" disabled="disabled">
                             <option value="online" selected="selected">在线</option>
                             <option value="outline">下线</option>
                         </select>
@@ -90,7 +90,7 @@
                     <td target="ip">2..2.2.2</td>
                     <td target="port">80</td>
                     <td target="status">
-                        <select title="状态">
+                        <select title="状态" class="info-selector" disabled="disabled">
                             <option value="online" selected="selected">在线</option>
                             <option value="outline">下线</option>
                         </select>
@@ -105,7 +105,7 @@
                     <td target="ip">3.3.3.3</td>
                     <td target="port">80</td>
                     <td target="status">
-                        <select title="状态">
+                        <select title="状态" class="info-selector" disabled="disabled">
                             <option value="online">在线</option>
                             <option value="outline" selected="selected">下线</option>
                         </select>
@@ -158,17 +158,21 @@
         </p>
         <p>
             <span>状态：</span>
-            <select name="status" title="状态">
+            <select name="status" title="状态" class="set-selector">
+                <!--<option value="none">&#45;&#45;&#45;&#45;</option>-->
                 <option value="online">在线</option>
-                <option value="outline">下线</option>
+                <option value="outline" selected="selected">下线</option>
             </select>
         </p>
     </div>
 
     <div style="padding-left: 85px">
-        <input type="button" value="确定" onclick="confirmModal();" />
-        <input class="modal-btn" type="button" value="取消" onclick="cancelModal();" />
-        <input class="modal-btn" type="reset" value="重置" onclick="resetModal();" />
+        <!--<input class="confirm-btn" type="button" value="确定" onclick="confirmModal();" />-->
+        <!--<input class="cancel-btn" type="button" value="取消" onclick="cancelModal();" />-->
+        <!--<input class="reset-btn" type="reset" value="重置" onclick="resetModal();" />-->
+        <input class="confirm-btn" type="button" value="确定" />
+        <input class="cancel-btn" type="button" value="取消" />
+        <input class="reset-btn" type="reset" value="重置" />
     </div>
 </div>
 
@@ -176,7 +180,7 @@
 
 <script src="js/jquery-1.12.4.min.js"></script>
 <script>
-    var this_index;  // 记录当前编辑行的位置
+//    var ths;  // 记录当前编辑行的位置
     // 全选
     function checkAll() {
         // 在id="tb"下面查找表单":checkbox",并设置checked状态为true
@@ -210,13 +214,15 @@
     // 添加一行, 弹出遮罩层对主页面进行遮罩,并在遮罩层上面弹出信息填写框
     function  addElement() {
         $(".modal,.shadow").removeClass('hide');
+        ths = $('#tb').find('tbody');
+        console.log("ths", ths);
     }
 
     // (添加)--取消
     // 隐藏modal/shadow, 清空输入信息
     function cancelModal() {
         $(".modal,.shadow").addClass('hide');
-         $('.modal input[type="text"]').val("");
+        $('.modal input[type="text"]').val("");
     }
 
     // (添加)--重置
@@ -229,26 +235,27 @@
 
     // (添加)--确定
     function confirmModal() {
+        // 隐藏modal/shadow
+        $(".modal,.shadow").addClass('hide');
         // 获取当前正在编辑的行数据
-        var current_tr = $("#tb").find("tbody").find("tr").get(this_index);
-        console.log("current_tr", current_tr);
+        var current_tr = $("#tb").find("tbody").find("tr").get(ths);
          // 获取class="modal"下面的主机名、主机IP、端口、状态
-//        var inps = $('.modal input[type="text"]');
         var ps = $('.modal p');
-        console.log(this_index);
+        console.log(ths);
         ps.each(function () {
             // 获取p下面input的name属性值,this代指当前的p
             var tar = $(this).find(':input').attr('name');
+            var t1 = 'td[target="';
+            var t2 = '"]';
+            var temp = t1 + tar + t2;
             if (tar === 'status'){
-//                var val = $(this).find(':input').val();
-//                console.log("ths", $(ths).find(tar).val(val));
+                // 获取新的状态值
+                var currStatus = $('.set-selector').val();
+                $(current_tr).find(temp).find('select').val(currStatus);
             }else {
                 var val = $(this).find(':input').val();
-                var t1 = 'td[target="';
-                var t2 = '"]';
-                var temp = t1 + tar + t2;
+                console.log($(current_tr).find(temp));
                 $(current_tr).find(temp).text(val);
-                console.log(val, $(current_tr).find(temp))
             }
         })
     }
@@ -260,9 +267,11 @@
 
     // 编辑
     $('.edit').click(function(){
+        // 编辑时不需要重置按钮,隐藏
+        $('.modal').find('.reset-btn').addClass('hide');
+        // 弹出遮罩层 修改框
         $(".modal,.shadow").removeClass('hide');
-        this_index = $(this).parent().parent().index();
-        console.log(this_index);
+        var ths = $(this).parent().parent().index();
          var tds = $(this).parent().prevAll();
         tds.each(function () {
             // 获取td的target属性值
@@ -270,10 +279,7 @@
             if (n === 'status') {
                 // 获取select的属性
                 var select_val = $(this).find('select option:selected').val();
-                var select_text = $(this).find("option:selected").text();
-                console.log(select_val, select_text);
-                $(".modal").find('select option:selected').val(select_val);
-//                $(".modal").find('select option:selected').text(select_text);
+                $('.modal').find('select').val( select_val);
             } else {
                 // 获取td中的内容
                 var text = $(this).text();
@@ -283,17 +289,45 @@
                 $(temp).val(text);
             }
         });
-
-
-//            var port = $(tds[0]).text();
-//            var host = $(tds[1]).text();
-//
-//            $('.modal input[name="hostname"]').val(host);
-//            $('.modal input[name="port"]').val(port);
-        // 循环获取tds中内容
-        // 获取 <td>内容</td> 获取中间的内容
-        // 赋值给input标签中的value
-
+        // 绑定取消按钮
+        $('.cancel-btn').click(function () {
+            // 隐藏modal/shadow, 清空输入信息
+            $(".modal,.shadow").addClass('hide');
+            $('.modal input[type="text"]').val("");
+        });
+        // 绑定重置按钮
+        $('.reset-btn').click(function () {
+            // 清空输入框
+            $('.modal input[type="text"]').val("");
+            // 设置"在线"为选中状态
+            $('.modal select option:selected').val("online");
+        });
+        // 绑定确定按钮
+        $('.confirm-btn').click(function () {
+            // 隐藏modal/shadow
+            $(".modal,.shadow").addClass('hide');
+            // 获取当前正在编辑的行数据
+            var current_tr = $("#tb").find("tbody").find("tr").get(ths);
+            // 获取class="modal"下面的主机名、主机IP、端口、状态
+            var ps = $('.modal p');
+            console.log(ths);
+            ps.each(function () {
+                // 获取p下面input的name属性值,this代指当前的p
+                var tar = $(this).find(':input').attr('name');
+                var t1 = 'td[target="';
+                var t2 = '"]';
+                var temp = t1 + tar + t2;
+                if (tar === 'status'){
+                    // 获取新的状态值
+                    var currStatus = $('.set-selector').val();
+                    $(current_tr).find(temp).find('select').val(currStatus);
+                }else {
+                    var val = $(this).find(':input').val();
+                    console.log($(current_tr).find(temp));
+                    $(current_tr).find(temp).text(val);
+                }
+            })
+        });
     });
 </script>
 </body>
