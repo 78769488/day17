@@ -224,7 +224,7 @@
         // 清空输入框
         $('.modal input[type="text"]').val("");
         // 设置"在线"为选中状态
-        $('.modal select').val("online");
+        $('.modal select option:selected').val("online");
     }
 
     // (添加)--确定
@@ -273,7 +273,7 @@
                 var select_text = $(this).find("option:selected").text();
                 console.log(select_val, select_text);
                 $(".modal").find('select option:selected').val(select_val);
-                $(".modal").find('select option:selected').text(select_text);
+//                $(".modal").find('select option:selected').text(select_text);
             } else {
                 // 获取td中的内容
                 var text = $(this).text();
