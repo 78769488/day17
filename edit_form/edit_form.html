@@ -42,6 +42,22 @@
         .reset-btn, .cancel-btn{
             margin-left: 15px;
         }
+        .edit-mode{
+            background-color: #ffae2c;
+            width: 150px;
+            height: 24px;
+            display: inline-block;
+            color: white;
+            text-align: center;
+            line-height: 24px;
+        }
+        .edit-mode:hover{
+            cursor: pointer;
+        }
+        .editing {
+            background-color: red;
+            /*$(this).css('backgroundColor', 'red');*/
+        }
     </style>
 </head>
 <body>
@@ -51,8 +67,7 @@
         <input type="button" value="全选" onclick="checkAll()">
         <input type="button" value="反选" onclick="reverseAll()">
         <input type="button" value="取消" onclick="cancleAll()">
-        <input type="button" value="添加" onclick="addElement()">
-        <span style="background-color: #ffae2c;width: 150px;height: 24px;display: inline-block;color: white;text-align: center;line-height: 24px;">进入编辑模式</span>
+        <a id="edit-mode" class="edit-mode">进入编辑模式</a>
     </div>
 
     <!--内容区域-->
@@ -81,7 +96,7 @@
                         </select>
                     </td>
                     <td>
-                        <a class="edit">编辑</a> | <a class="del">删除</a>
+                        <a class="edit-option">编辑</a> | <a class="del">删除</a>
                     </td>
                 </tr>
                 <tr>
@@ -96,7 +111,7 @@
                         </select>
                     </td>
                     <td>
-                        <a class="edit">编辑</a> | <a class="del">删除</a>
+                        <a class="edit-option">编辑</a> | <a class="del">删除</a>
                     </td>
                 </tr>
                 <tr>
@@ -111,7 +126,7 @@
                         </select>
                     </td>
                     <td>
-                        <a class="edit">编辑</a> | <a class="del">删除</a>
+                        <a class="edit-option">编辑</a> | <a class="del">删除</a>
                     </td>
                 </tr>
             </tbody>
@@ -134,7 +149,7 @@
             <li>
                 编辑模式：
                 <ul>
-                    <li>进入编辑模式时如果行被选中，则被选中的行万变为可编辑状态，未选中的不改变</li>
+                    <li>进入编辑模式时如果行被选中，则被选中的行变为可编辑状态，未选中的不改变</li>
                     <li>退出编辑模式时，所有的行进入非编辑状态</li>
                     <li>处于编辑模式时，行被选中则进入编辑状态，取消选择则进入非编辑状态</li>
                 </ul>
@@ -167,12 +182,12 @@
     </div>
 
     <div style="padding-left: 85px">
-        <!--<input class="confirm-btn" type="button" value="确定" onclick="confirmModal();" />-->
-        <!--<input class="cancel-btn" type="button" value="取消" onclick="cancelModal();" />-->
-        <!--<input class="reset-btn" type="reset" value="重置" onclick="resetModal();" />-->
-        <input class="confirm-btn" type="button" value="确定" />
-        <input class="cancel-btn" type="button" value="取消" />
-        <input class="reset-btn" type="reset" value="重置" />
+        <input class="confirm-btn" type="button" value="确定" onclick="confirmModal();" />
+        <input class="cancel-btn" type="button" value="取消" onclick="cancelModal();" />
+        <input class="reset-btn" type="reset" value="重置" onclick="resetModal();" />
+        <!--<input class="confirm-btn" type="button" value="确定" />-->
+        <!--<input class="cancel-btn" type="button" value="取消" />-->
+        <!--<input class="reset-btn" type="reset" value="重置" />-->
     </div>
 </div>
 
@@ -180,7 +195,8 @@
 
 <script src="js/jquery-1.12.4.min.js"></script>
 <script>
-//    var ths;  // 记录当前编辑行的位置
+    var ths;  // 记录当前编辑行的位置
+    var confirm_type;  //记录弹出框的弹出类型(添加/编辑)
     // 全选
     function checkAll() {
         // 在id="tb"下面查找表单":checkbox",并设置checked状态为true
@@ -210,56 +226,6 @@
         });
     }
 
-    // 添加
-    // 添加一行, 弹出遮罩层对主页面进行遮罩,并在遮罩层上面弹出信息填写框
-    function  addElement() {
-        $(".modal,.shadow").removeClass('hide');
-        ths = $('#tb').find('tbody');
-        console.log("ths", ths);
-    }
-
-    // (添加)--取消
-    // 隐藏modal/shadow, 清空输入信息
-    function cancelModal() {
-        $(".modal,.shadow").addClass('hide');
-        $('.modal input[type="text"]').val("");
-    }
-
-    // (添加)--重置
-    function resetModal() {
-        // 清空输入框
-        $('.modal input[type="text"]').val("");
-        // 设置"在线"为选中状态
-        $('.modal select option:selected').val("online");
-    }
-
-    // (添加)--确定
-    function confirmModal() {
-        // 隐藏modal/shadow
-        $(".modal,.shadow").addClass('hide');
-        // 获取当前正在编辑的行数据
-        var current_tr = $("#tb").find("tbody").find("tr").get(ths);
-         // 获取class="modal"下面的主机名、主机IP、端口、状态
-        var ps = $('.modal p');
-        console.log(ths);
-        ps.each(function () {
-            // 获取p下面input的name属性值,this代指当前的p
-            var tar = $(this).find(':input').attr('name');
-            var t1 = 'td[target="';
-            var t2 = '"]';
-            var temp = t1 + tar + t2;
-            if (tar === 'status'){
-                // 获取新的状态值
-                var currStatus = $('.set-selector').val();
-                $(current_tr).find(temp).find('select').val(currStatus);
-            }else {
-                var val = $(this).find(':input').val();
-                console.log($(current_tr).find(temp));
-                $(current_tr).find(temp).text(val);
-            }
-        })
-    }
-
     // 删除
     $('.del').click(function () {
         $(this).parent().parent().remove();
@@ -271,7 +237,8 @@
         $('.modal').find('.reset-btn').addClass('hide');
         // 弹出遮罩层 修改框
         $(".modal,.shadow").removeClass('hide');
-        var ths = $(this).parent().parent().index();
+        ths = $(this).parent().parent();
+        confirm_type = 'edit';
          var tds = $(this).parent().prevAll();
         tds.each(function () {
             // 获取td的target属性值
@@ -289,25 +256,22 @@
                 $(temp).val(text);
             }
         });
-        // 绑定取消按钮
-        $('.cancel-btn').click(function () {
-            // 隐藏modal/shadow, 清空输入信息
-            $(".modal,.shadow").addClass('hide');
-            $('.modal input[type="text"]').val("");
-        });
-        // 绑定重置按钮
-        $('.reset-btn').click(function () {
-            // 清空输入框
-            $('.modal input[type="text"]').val("");
-            // 设置"在线"为选中状态
-            $('.modal select option:selected').val("online");
-        });
-        // 绑定确定按钮
-        $('.confirm-btn').click(function () {
+    });
+
+    // 取消
+    // 隐藏modal/shadow, 清空输入信息
+    function cancelModal() {
+        $(".modal,.shadow").addClass('hide');
+        $('.modal input[type="text"]').val("");
+    }
+
+    // 确定
+    function confirmModal() {
+        // 编辑状态
+        if (confirm_type === 'edit'){
             // 隐藏modal/shadow
             $(".modal,.shadow").addClass('hide');
             // 获取当前正在编辑的行数据
-            var current_tr = $("#tb").find("tbody").find("tr").get(ths);
             // 获取class="modal"下面的主机名、主机IP、端口、状态
             var ps = $('.modal p');
             console.log(ths);
@@ -320,15 +284,55 @@
                 if (tar === 'status'){
                     // 获取新的状态值
                     var currStatus = $('.set-selector').val();
-                    $(current_tr).find(temp).find('select').val(currStatus);
+                    $(ths).find(temp).find('select').val(currStatus);
                 }else {
                     var val = $(this).find(':input').val();
-                    console.log($(current_tr).find(temp));
-                    $(current_tr).find(temp).text(val);
+                    console.log($(ths).find(temp));
+                    $(ths).find(temp).text(val);
                 }
-            })
+            });
+        }
+    }
+
+    // 点击进入编辑模式
+    $('#edit-mode').click(function () {
+        $(this).toggleClass('editing');
+        if ($(this).hasClass('editing')){
+            $(this).text('退出编辑模式');
+            // 查找已选择的行
+            $("#tb").find(":checkbox").each(function () {
+            // 循环判断每一个元素, 对于选中的行添加input标签
+             if ($(this).prop("checked")) {
+//                 console.log("checked", $(this).parent().siblings());
+                 var tds = $(this).parent().siblings();
+                 console.log("true", tds);
+                 tds.each(function () {
+                     console.log("111", [this][0]);
+                     if ($(this).hasClass('edit-option')){
+                         console.log('edit-option', [this][0]);
+                     }else {
+                         if ($(this).hasClass('info-selector')){
+                             console.log('select', [this][0]);
+                         }else {
+                             console.log('2222',[this][0]);
+                             var v = $(this).text();
+                             var temp1 = '<input value="';
+                             var temp2 = '" />';
+                             var temp = temp1 + v + temp2;
+                             $(this).html(temp);
+                         }
+                     }
+                 });
+             } else {
+//                 $(this).prop("checked", true);
+                 console.log("false");
+             }
         });
-    });
+        }else {
+            $(this).text('点击进入编辑模式');
+        }
+    })
+
 </script>
 </body>
 </html>
